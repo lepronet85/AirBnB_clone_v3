@@ -37,6 +37,7 @@ app.config['SWAGGER'] = {
 # Initialize Swagger with the Flask app
 swagger = Swagger(app)
 
+
 @app.teardown_appcontext
 def teardown_session(exception):
     """
@@ -44,12 +45,14 @@ def teardown_session(exception):
     """
     storage.close()
 
+
 @app.errorhandler(404)
 def not_found(error):
     """
     Handles 404 errors by returning a JSON response with a 404 status code.
     """
     return make_response(jsonify({"error": "Not found"}), 404)
+
 
 if __name__ == '__main__':
     # Retrieve environment variables for the API host and port
@@ -61,4 +64,3 @@ if __name__ == '__main__':
     port = 5000 if not HBNB_API_PORT else HBNB_API_PORT
     # Run the Flask application
     app.run(host=host, port=port, threaded=True)
-
