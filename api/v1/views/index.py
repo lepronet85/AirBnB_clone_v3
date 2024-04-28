@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """
-This script defines the index for the application, including routes for status and statistics.
+This script defines the index for the application, including routes
+for status and statistics.
 """
 from api.v1.views import app_views
 from flask import jsonify
@@ -18,7 +19,8 @@ def status():
 @app_views.route('/stats', methods=['GET'], strict_slashes=False)
 def stats():
     """
-    Endpoint to retrieve the count of each instance type, returning a JSON response.
+    Endpoint to retrieve the count of each instance type,
+    returning a JSON response.
     """
     return jsonify(amenities=storage.count("Amenity"),
                    cities=storage.count("City"),
