@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the FileStorage class
+This script encapsulates the FileStorage class for serializing and deserializing instances to/from a JSON file.
 """
 
 import json
@@ -12,20 +12,23 @@ from models.review import Review
 from models.state import State
 from models.user import User
 
-classes = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
-
+# Dictionary mapping class names to their corresponding classes
+class_map = {"Amenity": Amenity, "BaseModel": BaseModel, "City": City,
+             "Place": Place, "Review": Review, "State": State, "User": User}
 
 class FileStorage:
-    """serializes instances to a JSON file & deserializes back to instances"""
-
+    """
+    This class handles the serialization of instances to a JSON file and the deserialization back to instances.
+    """
     # string - path to the JSON file
     __file_path = "file.json"
     # dictionary - empty but will store all objects by <class name>.id
     __objects = {}
 
     def all(self, cls=None):
-        """returns the dictionary __objects"""
+        """
+        Returns the dictionary __objects, filtered by class if specified.
+        """
         if cls is not None:
             new_dict = {}
             for key, value in self.__objects.items():
@@ -35,36 +38,69 @@ class FileStorage:
         return self.__objects
 
     def new(self, obj):
-        """sets in __objects the obj with key <obj class name>.id"""
+        """
+        Adds an object to the __objects dictionary with the key format <obj class name>.id.
+        """
         if obj is not None:
             key = obj.__class__.__name__ + "." + obj.id
             self.__objects[key] = obj
 
     def save(self):
-        """serializes __objects to the JSON file (path: __file_path)"""
+        """
+        Serializes the __objects dictionary to the JSON file specified by __file_path.
+        """
         json_objects = {}
         for key in self.__objects:
-            json_objects[key] = self.__objects[key].to_dict()
+            json_objects[key] = self.__objects[key].to_dict(dump="Yes")
         with open(self.__file_path, 'w') as f:
             json.dump(json_objects, f)
 
     def reload(self):
-        """deserializes the JSON file to __objects"""
+        """
+        Deserializes the JSON file to the __objects dictionary.
+        """
         try:
             with open(self.__file_path, 'r') as f:
                 jo = json.load(f)
             for key in jo:
-                self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
+                self.__objects[key] = class_map[jo[key]["__class__"]](**jo[key])
         except:
             pass
 
     def delete(self, obj=None):
-        """delete obj from __objects if it’s inside"""
+        """
+        Removes an object from the __objects dictionary if it exists.
+        """
         if obj is not None:
             key = obj.__class__.__name__ + '.' + obj.id
             if key in self.__objects:
                 del self.__objects[key]
 
     def close(self):
-        """call reload() method for deserializing the JSON file to objects"""
+        """
+        Calls the reload() method to deserialize the JSON file to objects.
+        """
         self.reload()
+
+    def get(self, cls, id):
+        """
+        Retrieves an object based on its class name and ID, or returns None if not found.
+        """
+        key = "{}.{}".format(cls, id)
+        if key in self.__objects.keys():
+            return self.__objects[key]
+        return None
+
+    def count(self, cls=None):
+        """
+        Counts the number of objects in storage matching a given class name.
+        If no class name is provided, counts all objects in storage.
+        """
+        if cls:
+            counter = 0
+            for obj in self.__objects.values():
+                if obj.__class__.__name__ == cls:
+                    counter += 1
+            return counter
+        return len(self.__objects)
+

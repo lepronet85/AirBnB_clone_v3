@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Contains the class DBStorage
+This script encapsulates the DBStorage class for database interactions.
 """
 
 import models
@@ -16,17 +16,21 @@ import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-classes = {"Amenity": Amenity, "City": City,
-           "Place": Place, "Review": Review, "State": State, "User": User}
-
+# Dictionary mapping class names to their corresponding classes
+class_map = {"Amenity": Amenity, "City": City,
+             "Place": Place, "Review": Review, "State": State, "User": User}
 
 class DBStorage:
-    """interaacts with the MySQL database"""
+    """
+    This class facilitates interactions with the MySQL database.
+    """
     __engine = None
     __session = None
 
     def __init__(self):
-        """Instantiate a DBStorage object"""
+        """
+        Constructs a DBStorage object, initializing the database connection.
+        """
         HBNB_MYSQL_USER = getenv('HBNB_MYSQL_USER')
         HBNB_MYSQL_PWD = getenv('HBNB_MYSQL_PWD')
         HBNB_MYSQL_HOST = getenv('HBNB_MYSQL_HOST')
@@ -41,36 +45,71 @@ class DBStorage:
             Base.metadata.drop_all(self.__engine)
 
     def all(self, cls=None):
-        """query on the current database session"""
+        """
+        Queries the current database session for all objects of a given class.
+        """
         new_dict = {}
-        for clss in classes:
-            if cls is None or cls is classes[clss] or cls is clss:
-                objs = self.__session.query(classes[clss]).all()
+        for clss in class_map:
+            if cls is None or cls is class_map[clss] or cls is clss:
+                objs = self.__session.query(class_map[clss]).all()
                 for obj in objs:
                     key = obj.__class__.__name__ + '.' + obj.id
                     new_dict[key] = obj
         return (new_dict)
 
     def new(self, obj):
-        """add the object to the current database session"""
+        """
+        Adds an object to the current database session.
+        """
         self.__session.add(obj)
 
     def save(self):
-        """commit all changes of the current database session"""
+        """
+        Commits all changes of the current database session.
+        """
         self.__session.commit()
 
     def delete(self, obj=None):
-        """delete from the current database session obj if not None"""
+        """
+        Deletes an object from the current database session if it is not None.
+        """
         if obj is not None:
             self.__session.delete(obj)
 
     def reload(self):
-        """reloads data from the database"""
+        """
+        Reloads data from the database, resetting the session.
+        """
         Base.metadata.create_all(self.__engine)
         sess_factory = sessionmaker(bind=self.__engine, expire_on_commit=False)
         Session = scoped_session(sess_factory)
         self.__session = Session
 
     def close(self):
-        """call remove() method on the private session attribute"""
+        """
+        Removes the session from the current database session.
+        """
         self.__session.remove()
+
+    def get(self, cls, id):
+        """
+        Retrieves an object based on its class name and ID, or returns None if not found.
+        """
+        objects = self.__session.query(class_map[cls])
+        for obj in objects:
+            if obj.id == id:
+                return obj
+        return None
+
+    def count(self, cls=None):
+        """
+        Counts the number of objects in storage matching a given class name.
+        If no class name is provided, counts all objects in storage.
+        """
+        nobjects = 0
+        for clss in class_map:
+            if cls is None or cls is class_map[clss] or cls is clss:
+                nobjects += len(self.__session.query(class_map[clss]).all())
+        return nobjects
+
+
