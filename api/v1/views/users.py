@@ -45,16 +45,14 @@ def create_user():
     if "password" not in new_user_data:
         abort(400, description="Missing password field")
 
-    # Hashing the password for security
-    hashed_password = hashlib.sha256(
-        new_user_data["password"].encode()
-    ).hexdigest()
+    # Hashing the password before storing
+    hashed_password = hashlib.sha256(new_user_data["password"].encode()).hexdigest()
+    new_user_data["password"] = hashed_password
 
-    user = User(email=new_user_data["email"], password=hashed_password)
+    user = User(**new_user_data)
     storage.new(user)
     storage.save()
-    return make_response(jsonify(user.to_dict()), 201,
-                         {"Location": f"/users/{user.id}"})
+    return make_response(jsonify(user.to_dict()), 201, {"Location": f"/users/{user.id}"})
 
 
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
@@ -74,3 +72,4 @@ def update_user(user_id):
 
     storage.save()
     return make_response(jsonify(user.to_dict()), 200)
+
