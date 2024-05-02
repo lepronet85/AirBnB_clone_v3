@@ -22,7 +22,8 @@ def get_state_by_id(state_id):
     return jsonify(state.to_dict())
 
 
-@app_views.route('/states/<state_id>', methods=['DELETE'], strict_slashes=False)
+@app_views.route('/states/<state_id>', methods=['DELETE'],
+                 strict_slashes=False)
 def delete_state(state_id):
     """Deletes a specific State object by ID"""
     state = storage.get("State", state_id)
@@ -44,7 +45,8 @@ def create_state():
     new_state = State(**new_state_data)
     storage.new(new_state)
     storage.save()
-    return make_response(jsonify(new_state.to_dict()), 201, {"Location": f"/states/{new_state.id}"})
+    return make_response(jsonify(new_state.to_dict()), 201,
+                         {"Location": f"/states/{new_state.id}"})
 
 
 @app_views.route('/states/<state_id>', methods=['PUT'], strict_slashes=False)
